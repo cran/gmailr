@@ -1,4 +1,7 @@
 # gmailr #
+
+[![Build Status](https://travis-ci.org/jimhester/gmailr.png?branch=master)](https://travis-ci.org/jimhester/gmailr)
+
 Easily exposing the [Gmail API](https://developers.google.com/gmail/api/overview) from R.
 
 ## Features ##
@@ -21,9 +24,13 @@ Easily exposing the [Gmail API](https://developers.google.com/gmail/api/overview
 
 ## Setup ##
 
-Register an application at https://cloud.google.com/console#/project
-  - create a new client ID and download the resulting JSON
-  - authorize the application using `gmail_auth()`
+- Register a new project at https://cloud.google.com/console#/project
+- Navigate to `APIs`
+  - Switch the Gmail API status to `On`
+- Navigate to `APIs & auth->Credentials`
+  - Create a new client ID
+  - Download the Client ID JSON
+- Use the downloaded JSON as input to `gmail_auth()`
 
       ```R
       gmail_auth('file.json')

@@ -14,8 +14,8 @@
 draft = function(id, user_id = 'me', format=c("full", "minimal", "raw")) {
   format = match.arg(format)
   req = GET(gmail_path(user_id, "drafts", id),
-            query = format,
-            config(token = google_token))
+            query = list(format=format),
+            config(token = get_token()))
   stop_for_status(req)
   structure(content(req, "parsed"), class='gmail_draft')
 }
@@ -27,6 +27,7 @@ draft = function(id, user_id = 'me', format=c("full", "minimal", "raw")) {
 #' @param page_token retrieve a specific page of results
 #' @inheritParams message
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/drafts/list}
+#' @export
 #' @examples
 #' \dontrun{
 #' my_drafts = drafts()
@@ -37,6 +38,31 @@ drafts = function(num_results = NULL, page_token = NULL, user_id = 'me'){
   page_and_trim('drafts', user_id, num_results, page_token)
 }
 
+#' Create a draft from a mime message
+#'
+#' @param mail mime mail message created by mime
+#' @param type the type of upload to perform
+#' @inheritParams message
+#' @references \url{https://developers.google.com/gmail/api/v1/reference/users/drafts/create}
+#' @export
+#' @examples
+#' \dontrun{
+#' create_draft(mime(from="you@@me.com", to="any@@one.com",
+#'                           subject='hello", "how are you doing?"))
+#' }
+create_draft = function(mail, user_id = 'me', type=c("multipart", "media", "resumable")) {
+  mail = if(!is.character(mail)) as.character(mail) else mail
+  type = match.arg(type)
+  req = POST(gmail_path(user_id, "drafts"),
+            query = list(uploadType=type),
+            body = jsonlite::toJSON(auto_unbox=TRUE,
+                          list(
+                               message=list(raw=base64url_encode(mail)))),
+             add_headers('Content-Type' = 'application/json'), config(token = get_token()))
+  stop_for_status(req)
+  invisible(req)
+}
+
 #' Send a draft
 #'
 #' Send a draft to the recipients in the To, CC, and Bcc headers.
@@ -44,6 +70,7 @@ drafts = function(num_results = NULL, page_token = NULL, user_id = 'me'){
 #' @param upload_type type of upload request
 #' @inheritParams message
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/drafts/send}
+#' @export
 #' @examples
 #' \dontrun{
 #' send_draft(12345)
@@ -52,9 +79,9 @@ send_draft = function(id, upload_type = c("media", "multipart", "resumable"), us
   upload_type = match.arg(upload_type)
   req = POST(gmail_path(user_id, "drafts"),
              query=rename(upload_type),
-             body=c("id"=id), encode="json",
-            config(token = google_token))
+             body=c("id"=id),
+             encode="json",
+            config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
 }
-

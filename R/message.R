@@ -14,8 +14,8 @@
 message = function(id, user_id = 'me', format=c("full", "minimal", "raw")) {
   format = match.arg(format)
   req = GET(gmail_path(user_id, "messages", id),
-            query = format,
-            config(token = google_token))
+            query = list(format=format),
+            config(token = get_token()))
   stop_for_status(req)
   structure(content(req, "parsed"), class='gmail_message')
 }
@@ -23,6 +23,7 @@ message = function(id, user_id = 'me', format=c("full", "minimal", "raw")) {
 #' Get a list of messages
 #'
 #' Get a list of messages possibly matching a given query string.
+#' @export
 #' @param search query to use, same format as gmail search box.
 #' @param num_results the number of results to return.
 #' @param page_token retrieve a specific page of results
@@ -51,7 +52,7 @@ messages = function(search = NULL, num_results = NULL, label_ids = NULL, include
 #' }
 trash_message = function(id, user_id = 'me') {
   req = POST(gmail_path(rename(user_id), "messages", id, "trash"),
-            config(token = google_token))
+            config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
 }
@@ -68,7 +69,7 @@ trash_message = function(id, user_id = 'me') {
 #' }
 untrash_message = function(id, user_id = 'me') {
   req = POST(gmail_path(rename(user_id), "messages", id, "trash"),
-            config(token = google_token))
+            config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
 }
@@ -85,7 +86,7 @@ untrash_message = function(id, user_id = 'me') {
 #' }
 delete_message = function(id, user_id = 'me') {
   req = DELETE(gmail_path(rename(user_id), "messages", id),
-            config(token = google_token))
+            config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
 }
@@ -108,7 +109,7 @@ delete_message = function(id, user_id = 'me') {
 modify_message = function(id, add_labels = character(0), remove_labels = character(0), user_id = 'me') {
   body = rename(list('add_labels' = add_labels, 'remove_labels' = remove_labels))
   req = POST(gmail_path(rename(user_id), "messages", id, "modify"), body=body,
-            config(token = google_token))
+            config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
 }
@@ -130,7 +131,7 @@ modify_message = function(id, add_labels = character(0), remove_labels = charact
 #' }
 attachment = function(id, message_id, user_id = 'me') {
   req = GET(gmail_path(rename(user_id), "messages", message_id, 'attachments', id),
-            config(token = google_token))
+            config(token = get_token()))
   stop_for_status(req)
   structure(content(req, "parsed"), class="gmail_attachment")
 }
@@ -185,3 +186,80 @@ save_attachments = function(x, attachment_id = NULL, path='', user_id = 'me'){
   }
 }
 
+#' Insert a message into the gmail mailbox from a mime message
+#'
+#' @param mail mime mail message created by mime
+#' @param label_ids optional label ids to apply to the message
+#' @param type the type of upload to perform
+#' @param internal_date_source whether to date the object based on the date of
+#'        the message or when it was received by gmail.
+#' @inheritParams message
+#' @references \url{https://developers.google.com/gmail/api/v1/reference/users/messages/insert}
+#' @export
+#' @examples
+#' \dontrun{
+#' insert_message(mime(from="you@@me.com", to="any@@one.com",
+#'                           subject='hello", "how are you doing?"))
+#' }
+insert_message = function(mail, user_id = 'me', label_ids = NULL, type=c("multipart", "media", "resumable"), internal_date_source=c("dateHeader", "recievedTime")) {
+  mail = if(!is.character(mail)) as.character(mail) else mail
+  type = match.arg(type)
+  internal_date_source = match.arg(internal_date_source)
+
+  req = POST(gmail_path(user_id, "messages"),
+            query = list(uploadType=type, interalDateSource=internal_date_source),
+            body = jsonlite::toJSON(auto_unbox=TRUE,
+                          c(not_null(rename(label_ids)),
+                            raw=base64url_encode(mail))),
+             add_headers('Content-Type' = 'application/json'), config(token = get_token()))
+  stop_for_status(req)
+  invisible(req)
+}
+
+#' Import a message into the gmail mailbox from a mime message
+#'
+#' @inheritParams insert_message
+#' @references \url{https://developers.google.com/gmail/api/v1/reference/users/messages/import}
+#' @export
+#' @examples
+#' \dontrun{
+#' import_message(mime(from="you@@me.com", to="any@@one.com",
+#'                           subject='hello", "how are you doing?"))
+#' }
+import_message = function(mail, user_id = 'me', label_ids = NULL, type=c("multipart", "media", "resumable"), internal_date_source=c("dateHeader", "recievedTime")) {
+  mail = if(!is.character(mail)) as.character(mail) else mail
+  type = match.arg(type)
+  internal_date_source = match.arg(internal_date_source)
+
+  req = POST(gmail_path(user_id, "messages", "import"),
+            query = list(uploadType=type, interalDateSource=internal_date_source),
+            body = jsonlite::toJSON(auto_unbox=TRUE,
+                          c(not_null(rename(label_ids)),
+                            raw=base64url_encode(mail))),
+             add_headers('Content-Type' = 'application/json'), config(token = get_token()))
+  stop_for_status(req)
+  invisible(req)
+}
+
+#' Send a message from a mime message
+#'
+#' @inheritParams insert_message
+#' @references \url{https://developers.google.com/gmail/api/v1/reference/users/messages/send}
+#' @export
+#' @examples
+#' \dontrun{
+#' send_message(mime(from="you@@me.com", to="any@@one.com",
+#'                           subject='hello", "how are you doing?"))
+#' }
+send_message = function(mail, user_id = 'me', label_ids = NULL, type=c("multipart", "media", "resumable")) {
+  mail = if(!is.character(mail)) as.character(mail) else mail
+  type = match.arg(type)
+
+  req = POST(gmail_path(user_id, "messages", "send"),
+            query = list(uploadType=type),
+            body = jsonlite::toJSON(auto_unbox=TRUE,
+                          list(raw=base64url_encode(mail))),
+             add_headers('Content-Type' = 'application/json'), config(token = get_token()))
+  stop_for_status(req)
+  invisible(req)
+}

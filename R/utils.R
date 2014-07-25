@@ -31,13 +31,15 @@ rename = function(...) {
 not_null = function(x){ Filter(Negate(is.null), x) }
 
 gmail_path = function(user, ...) { paste("https://www.googleapis.com/gmail/v1/users", user, ..., sep="/") }
+gmail_upload_path = function(user, ...) { paste("https://www.googleapis.com/upload/gmail/v1/users", user, ..., sep="/") }
 base64url_decode_to_char = function(x) { rawToChar(base64decode(gsub("_", "/", gsub("-", "+", x)))) }
 base64url_decode = function(x) { base64decode(gsub("_", "/", gsub("-", "+", x))) }
+base64url_encode = function(x) { gsub("/", "_", gsub("\\+", "-", base64encode(charToRaw(x)))) }
 
 debug = function(...){
   args = dots(...)
 
-  message(sprintf(paste0(args, '=%s', collapse=' '), ...))
+  base::message(sprintf(paste0(args, '=%s', collapse=' '), ...))
 }
 
 dots = function (...) { eval(substitute(alist(...))) }
@@ -45,7 +47,7 @@ dots = function (...) { eval(substitute(alist(...))) }
 page_and_trim = function(type, user_id, num_results, ...){
   itr = function(...){
     req = GET(gmail_path(user_id, type),
-             query = not_null(rename(...)), config(token = google_token))
+             query = not_null(rename(...)), config(token = get_token()))
     stop_for_status(req)
     content(req, "parsed")
   }
@@ -78,3 +80,43 @@ page_and_trim = function(type, user_id, num_results, ...){
   }
   structure(trim(all_results, num_results), class=paste0('gmail_', type))
 }
+
+ord = function(x) { strtoi(charToRaw(x), 16L) }
+
+chr = function(x) { rawToChar(as.raw(x)) }
+
+substitute_regex = function(data, pattern, fun, ...) {
+  match = gregexpr(pattern, ..., data)
+  regmatches(data, match) = lapply(regmatches(data, match),
+                                   function(x) { if(length(x) > 0) { vapply(x, function(xx) fun(xx), character(1)) } else { x } })
+  data
+}
+
+# return RHS if LHS is null, else LHS
+"%||%" = function(x, y){ if(is.null(x)){ y } else { x } }
+
+# return LHS if LHS is null, else RHS, usually RHS should also include The LHS
+# value, otherwise this function makes little sense
+"%|||%" = function(x, y){ if(is.null(x)){ x } else { y } }
+
+#' @importFrom magrittr %>%
+#' @export
+NULL
+
+encode_base64 = function(x, line_length = 76L, newline = '\r\n') {
+  if(is.raw(x)) {
+    base64encode(x, 76L, newline)
+  } else {
+    base64encode(charToRaw(x), 76L, '\r\n')
+  }
+}
+
+exists_list = function(data, x){
+  if(is.character(x)){
+    return(exists(x, data))
+  }
+  return(length(data) >= x && !is.null(data[[x]]))
+}
+
+"%==%" = function(x, y) { identical(x, y) }
+"%!=%" = function(x, y) { !identical(x, y) }
