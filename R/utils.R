@@ -16,6 +16,7 @@ name_map = c(
   "label_list_visibility" = "labelListVisibility",
   "message_list_visibility" = "messageListVisibility",
   "upload_type" = "uploadType",
+  "label_ids" = "labelIds",
   NULL
 )
 
@@ -45,6 +46,8 @@ debug = function(...){
 dots = function (...) { eval(substitute(alist(...))) }
 
 page_and_trim = function(type, user_id, num_results, ...){
+
+  num_results = num_results %||% 100
   itr = function(...){
     req = GET(gmail_path(user_id, type),
              query = not_null(rename(...)), config(token = get_token()))
@@ -99,8 +102,12 @@ substitute_regex = function(data, pattern, fun, ...) {
 # value, otherwise this function makes little sense
 "%|||%" = function(x, y){ if(is.null(x)){ x } else { y } }
 
-#' @importFrom magrittr %>%
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
 #' @export
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
 NULL
 
 encode_base64 = function(x, line_length = 76L, newline = '\r\n') {
@@ -120,3 +127,5 @@ exists_list = function(data, x){
 
 "%==%" = function(x, y) { identical(x, y) }
 "%!=%" = function(x, y) { !identical(x, y) }
+
+p = function(...) paste(sep='', collapse='', ...)
