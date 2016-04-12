@@ -1,8 +1,5 @@
-## ----, include=FALSE-----------------------------------------------------
+## ---- include=FALSE------------------------------------------------------
 library(gmailr)
-
-## ----, eval=FALSE--------------------------------------------------------
-#  gmail_auth('file.json')
 
 ## ----sending_messages_simple---------------------------------------------
 mime() %>%
@@ -20,14 +17,14 @@ mime() %>%
   html_body("<b>Gmailr</b> is a <i>very</i> handy package!") -> html_msg
 
 ## ----sending_messages_attachments_2--------------------------------------
-write.csv(file='iris.csv', iris)
+write.csv(file = "iris.csv", iris)
 
 html_msg %>%
   subject("Here are some flowers") %>%
-  attach_file('iris.csv') -> file_attachment
+  attach_file("iris.csv") -> file_attachment
 
 ## ----sending_messages_attachments_1--------------------------------------
-html_msg %>% attach_part(body=charToRaw('attach me!'), name='please') -> simple_attachment
+html_msg %>% attach_part(part = charToRaw("attach me!"), name = "please") -> simple_attachment
 
 ## ----sending_messages_create_draft, eval=FALSE---------------------------
 #  create_draft(file_attachment)
@@ -39,13 +36,13 @@ html_msg %>% attach_part(body=charToRaw('attach me!'), name='please') -> simple_
 #  insert_message(file_attachment)
 
 ## ----sending_messages_send_draft, eval=FALSE-----------------------------
-#  my_drafts = drafts()
+#  my_drafts <- drafts()
 #  
-#  send_draft(id(my_drafts, 'draft_id')[1])
+#  send_draft(id(my_drafts, "draft_id")[1])
 
 ## ----sending_messages_send_message, eval=FALSE---------------------------
 #  send_message(file_attachment)
 
 ## ----sending_messages_clenup, include=FALSE------------------------------
-unlink('iris.csv')
+unlink("iris.csv")
 

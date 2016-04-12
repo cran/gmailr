@@ -2,27 +2,13 @@
 title: "Sending Messages With Gmailr"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Sending Messages With Gmailr}
   %\usepackage[utf8]{inputenc}
 ---
 
-## Authentication
-
-- Register a new project at https://cloud.google.com/console#/project
-- Navigate to `APIs`
-    - Switch the Gmail API status to `On`
-- Navigate to `APIs & auth->Credentials`
-    - Create a new client ID
-    - Download the Client ID JSON
-- Use the downloaded JSON as input to `gmail_auth()`
-
 ```{r, include=FALSE}
 library(gmailr)
-```
-
-```{r, eval=FALSE}
-gmail_auth('file.json')
 ```
 
 ## Constructing a MIME message
@@ -65,16 +51,16 @@ You can add attachments to your message in two ways.
    automatically guessed by `mime::guess_type`, or you can specify it yourself
    with the `type` parameter.
 ```{r sending_messages_attachments_2}
-write.csv(file='iris.csv', iris)
+write.csv(file = "iris.csv", iris)
 
 html_msg %>%
   subject("Here are some flowers") %>%
-  attach_file('iris.csv') -> file_attachment
+  attach_file("iris.csv") -> file_attachment
 ```
 
 2. If the data are already loaded into R, you can use `attach_part()` to attach the binary data to your file.
 ```{r sending_messages_attachments_1}
-html_msg %>% attach_part(body=charToRaw('attach me!'), name='please') -> simple_attachment
+html_msg %>% attach_part(part = charToRaw("attach me!"), name = "please") -> simple_attachment
 ```
 
 ## Uploading
@@ -113,9 +99,9 @@ insert_message(file_attachment)
 (possibly created with `create_draft()`).
 
 ```{r sending_messages_send_draft, eval=FALSE}
-my_drafts = drafts()
+my_drafts <- drafts()
 
-send_draft(id(my_drafts, 'draft_id')[1])
+send_draft(id(my_drafts, "draft_id")[1])
 ```
 ### Message
 
@@ -126,5 +112,5 @@ send_message(file_attachment)
 ```
 
 ```{r sending_messages_clenup, include=FALSE}
-unlink('iris.csv')
+unlink("iris.csv")
 ```

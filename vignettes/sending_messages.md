@@ -46,15 +46,15 @@ strwrap(as.character(text_msg))
 ```
 
 ```
-## [1] "MIME-Version: 1.0\r Date: Thu, 04 Dec 2014 21:33:22 GMT\r To:"     
+## [1] "MIME-Version: 1.0\r Date: Thu, 18 Sep 2014 15:37:48 GMT\r To:"     
 ## [2] "james.f.hester@gmail.com\r From: me@somewhere.com\r Content-Type:" 
-## [3] "multipart/mixed; boundary=5d288bcdcba8b2434e965a35fb89e449\r"      
-## [4] "Content-Disposition: inline\r --5d288bcdcba8b2434e965a35fb89e449\r"
-## [5] "MIME-Version: 1.0\r Date: Thu, 04 Dec 2014 21:33:22 GMT\r"         
+## [3] "multipart/mixed; boundary=6adc9201a16d2ce2ec46225aa05c3b05\r"      
+## [4] "Content-Disposition: inline\r --6adc9201a16d2ce2ec46225aa05c3b05\r"
+## [5] "MIME-Version: 1.0\r Date: Thu, 18 Sep 2014 15:37:48 GMT\r"         
 ## [6] "Content-Type: text/plain; charset=utf-8; format=flowed\r"          
 ## [7] "Content-Transfer-Encoding: quoted-printable\r Content-Disposition:"
 ## [8] "inline\r \r Gmailr is a very handy package!\r"                     
-## [9] "--5d288bcdcba8b2434e965a35fb89e449--\r"
+## [9] "--6adc9201a16d2ce2ec46225aa05c3b05--\r"
 ```
 
 ### HTML

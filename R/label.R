@@ -3,13 +3,14 @@
 #' Get a list of all labels for a user.
 #' @inheritParams message
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/labels/list}
+#' @family label
 #' @export
 #' @examples
 #' \dontrun{
 #' my_labels = labels()
 #' }
-labels = function(user_id = 'me'){
-  req = GET(gmail_path(user_id, "labels"),
+labels <- function(user_id = "me"){
+  req <- GET(gmail_path(user_id, "labels"),
             config(token = get_token()))
   stop_for_status(req)
   content(req, "parsed")
@@ -22,9 +23,10 @@ labels = function(user_id = 'me'){
 #' @param id label id to retrieve
 #' @inheritParams labels
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/labels/get}
+#' @family label
 #' @export
-label = function(id, user_id = 'me') {
-  req = GET(gmail_path(user_id, "labels", id),
+label <- function(id, user_id = "me") {
+  req <- GET(gmail_path(user_id, "labels", id),
             config(token = get_token()))
   stop_for_status(req)
   content(req, "parsed")
@@ -38,20 +40,22 @@ label = function(id, user_id = 'me') {
 #' @inheritParams labels
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/labels/update}
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/labels/patch}
+#' @family label
 #' @export
-update_label = function(id, label, user_id = 'me') {
-  req = POST(gmail_path(user_id, "labels", id),
-              body=label, encode='json',
+update_label <- function(id, label, user_id = "me") {
+  req <- POST(gmail_path(user_id, "labels", id),
+              body=label, encode="json",
               config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
 }
 
 #' @rdname update_label
+#' @family label
 #' @export
-update_label_patch = function(id, label, user_id = 'me') {
-  req = PATCH(gmail_path(user_id, "labels", id),
-              body=label, encode='json',
+update_label_patch <- function(id, label, user_id = "me") {
+  req <- PATCH(gmail_path(user_id, "labels", id),
+              body=label, encode="json",
               config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
@@ -62,9 +66,10 @@ update_label_patch = function(id, label, user_id = 'me') {
 #' Function to delete a label by id.  This cannot be undone!
 #' @inheritParams label
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/labels/delete}
+#' @family label
 #' @export
-delete_label = function(id, user_id = 'me') {
-  req = DELETE(gmail_path(user_id, "labels", id),
+delete_label <- function(id, user_id = "me") {
+  req <- DELETE(gmail_path(user_id, "labels", id),
             config(token = get_token()))
   stop_for_status(req)
   invisible(content(req, "parsed"))
@@ -78,13 +83,20 @@ delete_label = function(id, user_id = 'me') {
 #' @param message_list_visibility The visibility of messages with this label in the message list in the Gmail web interface.
 #' @inheritParams labels
 #' @references \url{https://developers.google.com/gmail/api/v1/reference/users/labels/create}
+#' @family label
 #' @export
-create_label = function(name, label_list_visibility=c("hide", "show", "show_unread"), message_list_visibility=c("hide", "show"), user_id = 'me') {
-  label_list_visibility = label_value_map[match.arg(label_list_visibility)]
-  message_list_visibility = match.arg(message_list_visibility)
-  req = POST(gmail_path(user_id, "labels"),
-               body=c(rename(name, label_list_visibility, message_list_visibility)), encode="json",
+create_label <- function(name,
+                         label_list_visibility=c("hide", "show", "show_unread"),
+                         message_list_visibility=c("hide", "show"),
+                         user_id = "me") {
+  label_list_visibility <- label_value_map[match.arg(label_list_visibility)]
+  message_list_visibility <- match.arg(message_list_visibility)
+
+  req <- POST(gmail_path(user_id, "labels"),
+               body=c(rename(name, label_list_visibility, message_list_visibility)),
+               encode="json",
             config(token = get_token()))
+
   stop_for_status(req)
   invisible(content(req, "parsed"))
 }
