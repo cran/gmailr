@@ -1,7 +1,7 @@
 #' Create a mime formatted message object
 #'
 #' These functions create a MIME message. They can be created atomically using
-#' `mime()` or iteratively using the various accessors.
+#' `gm_mime()` or iteratively using the various accessors.
 #' @param body Message body.
 #' @param attr attributes to pass to the message
 #' @param parts mime parts to pass to the message
@@ -9,114 +9,145 @@
 #' @export
 #' @examples
 #' # using the field functions
-#' msg = mime() %>%
-#'  from("james.f.hester@@gmail.com") %>%
-#'  to("asdf@asdf.com") %>%
-#'  text_body("Test Message")
+#' msg = gm_mime() %>%
+#'  gm_from("james.f.hester@@gmail.com") %>%
+#'  gm_to("asdf@asdf.com") %>%
+#'  gm_text_body("Test Message")
 #'
-#' # alternatively you can set the fields using mime(), however you have
+#' # alternatively you can set the fields using gm_mime(), however you have
 #' #  to use properly formatted MIME names
-#' msg = mime(From="james.f.hester@@gmail.com",
+#' msg = gm_mime(From="james.f.hester@@gmail.com",
 #'                    To="asdf@asdf.com") %>%
-#'         html_body("<b>Test<\b> Message")
-mime <- function(..., attr = NULL, body = NULL, parts = list()) {
+#'         gm_html_body("<b>Test<\b> Message")
+gm_mime <- function(..., attr = NULL, body = NULL, parts = list()) {
   structure(list(parts = parts,
-                 header = with_defaults(c("MIME-Version" = "1.0",
-                          Date = http_date(Sys.time())),
-                          ...),
+                 header = with_defaults(
+                   c("MIME-Version" = "1.0"),
+                     Date = http_date(Sys.time()),
+                   ...),
                  body = body, attr = attr), class="mime")
 }
 
 #' @param x the object whose fields you are setting
-#' @param val the value to set
-#' @param vals one or more values to use, will be joined by commas
-#' @rdname mime
+#' @param val the value to set, can be a vector, in which case the values will be joined by ", ".
+#' @rdname gm_mime
 #' @export
-to.mime <- function(x, vals, ...){
-  if(missing(vals)){ return(x$header$To) }
-  x$header$To <- paste0(collapse = ", ", vals)
+gm_to.mime <- function(x, val, ...){
+  if(missing(val)){ return(x$header$To) }
+  x$header$To <- val
   x
 }
 
-#' @rdname mime
+#' @rdname gm_mime
 #' @export
-from.mime <- function(x, val, ...){
+gm_from.mime <- function(x, val, ...){
   if(missing(val)){ return(x$header$From) }
   x$header$From <- val
   x
 }
 
-#' @rdname mime
+#' @rdname gm_mime
 #' @export
-cc.mime <- function(x, vals, ...){
-  if(missing(vals)){ return(x$header$Cc) }
-  x$header$Cc <- paste0(collapse = ", ", vals)
+gm_cc.mime <- function(x, val, ...){
+  if(missing(val)){ return(x$header$Cc) }
+  x$header$Cc <- val
   x
 }
 
-#' @rdname mime
+#' @rdname gm_mime
 #' @export
-bcc.mime <- function(x, vals, ...){
-  if(missing(vals)){ return(x$header$Bcc) }
-  x$header$Bcc <- paste0(collapse = ", ", vals)
+gm_bcc.mime <- function(x, val, ...){
+  if(missing(val)){ return(x$header$Bcc) }
+  x$header$Bcc <- val
   x
 }
 
-#' @rdname mime
+#' @rdname gm_mime
 #' @export
-subject.mime <- function(x, val, ...){
+gm_subject.mime <- function(x, val, ...){
   if(missing(val)){ return(x$header$Subject) }
   x$header$Subject <- val
   x
 }
 
 #' @param mime message.
+#' @param content_type The content type to use for the body.
+#' @param charset The character set to use for the body.
+#' @param encoding The transfer encoding to use for the body.
+#' @param format The mime format to use for the body.
 #' @param ... additional parameters to put in the attr field
-#' @rdname mime
+#' @rdname gm_mime
 #' @export
-text_body <- function(mime, body, ...){
-  if(missing(body)){ return(mime$parts[[TEXT_PART]]) }
-  mime$parts[[TEXT_PART]] <- mime(attr = list(
-              content_type = "text/plain",
-              charset      = "utf-8",
-              encoding     = "quoted-printable",
-              format       = "flowed",
-              ...),
-              body = body)
+gm_text_body <- function(mime,
+                         body,
+                         content_type = "text/plain",
+                         charset = "utf-8",
+                         encoding = "quoted-printable",
+                         format = "flowed",
+                         ...) {
+  if (missing(body)) {
+    return(mime$parts[[TEXT_PART]])
+  }
+  mime$parts[[TEXT_PART]] <- gm_mime(
+    attr = list(
+      content_type = content_type,
+      charset = charset,
+      encoding = encoding,
+      format = format,
+      ...
+    ),
+    body = body
+  )
   mime
 }
+
 TEXT_PART <- 1L
 
-#' @rdname mime
+#' @rdname gm_mime
 #' @export
-html_body <- function(mime, body, ...){
-  if(missing(body)){ return(mime$parts[[HTML_PART]]) }
-  mime$parts[[HTML_PART]] <- mime(attr = list(
+gm_html_body <- function(mime,
+                         body,
                          content_type = "text/html",
-                         charset      = "utf-8",
-                         encoding     = "base64",
-                         ...),
-                         body = body)
+                         charset = "utf-8",
+                         encoding = "base64",
+                         ...) {
+  if (missing(body)) {
+    return(mime$parts[[HTML_PART]])
+  }
+  mime$parts[[HTML_PART]] <- gm_mime(
+    attr = list(
+      content_type = content_type,
+      charset = charset,
+      encoding = encoding,
+      ...
+    ),
+    body = body
+  )
   mime
 }
+
 HTML_PART <- 2L
 
 #' @param part Message part to attach
 #' @param filename name of file to attach
 #' @param type mime type of the attached file
-#' @rdname mime
+#' @param id The content ID of the attachment
+#' @rdname gm_mime
 #' @export
-attach_part <- function(mime, part, ...){
+gm_attach_part <- function(mime, part, id = NULL, ...){
   if(missing(part)){ return(mime$parts[[3L:length(mime$parts)]]) }
   part_num <- if(length(mime$parts) < 3L) 3L else length(mime$parts) + 1L
-  mime$parts[[part_num]] <- mime(attr = c(encoding = "base64", list(...)),
-                                body = part)
+  part <- gm_mime(attr = c(encoding = "base64", list(...)), body = part)
+  if (!is.null(id)) {
+    part$header[["Content-Id"]] <- sprintf("<%s>", id)
+  }
+  mime$parts[[part_num]] <- part
   mime
 }
 
-#' @rdname mime
+#' @rdname gm_mime
 #' @export
-attach_file <- function(mime, filename, type = NULL, ...){
+gm_attach_file <- function(mime, filename, type = NULL, id = NULL, ...){
   if(missing(filename)){ return(mime$parts[[3L:length(mime$parts)]]) }
 
   if (is.null(type)) {
@@ -130,12 +161,37 @@ attach_file <- function(mime, filename, type = NULL, ...){
 
   base_name <- basename(filename)
 
-  attach_part(mime, body,
+  gm_attach_part(mime, body,
          content_type = type,
          name = base_name,
          filename = base_name,
-         modification_date = http_date(info$mtime),
+         disposition = "attachment",
+         #modification_date = http_date(info$mtime),
+         id = id,
          ...)
+}
+
+header_encode <- function(x) {
+  x <- enc2utf8(unlist(strsplit(as.character(x), ", ?")))
+
+  # this won't deal with <> used in quotes, but I think it is rare enough that
+  # is ok
+  m <- rematch2::re_match(x, "^(?<phrase>[^<]*?)(?: *<(?<addr_spec>[^>]+)>)?$")
+  res <- character(length(x))
+
+  # simple addresses contain no <>, so we don't need to do anything further
+  simple <- !nzchar(m$addr_spec)
+  res[simple] <- m$phrase[simple]
+
+  # complex addresses may need to be base64-encoded
+  needs_encoding <- Encoding(m$phrase) != "unknown"
+  res[needs_encoding] <- sprintf("=?utf-8?B?%s?=", vcapply(m$phrase[needs_encoding], encode_base64))
+  res[!needs_encoding] <- m$phrase[!needs_encoding]
+
+  # Add the addr_spec onto non-simple examples
+  res[!simple] <- sprintf("%s <%s>", res[!simple], m$addr_spec[!simple])
+
+  paste0(res, collapse = ", ")
 }
 
 #' Convert a mime object to character representation
@@ -144,17 +200,16 @@ attach_file <- function(mime, filename, type = NULL, ...){
 #'
 #' @param x object to convert
 #' @param newline value to use as newline character
-#' @param ... futher arguments ignored
+#' @param ... further arguments ignored
 #' @export
 as.character.mime <- function(x, newline="\r\n", ...) {
 
+  # encode headers
+  x$header <- lapply(x$header, header_encode)
+
   # if we have both the text part and html part, we have to embed them in a multipart/alternative message
   if(x$attr$content_type %!=% "multipart/alternative" && exists_list(x$parts, TEXT_PART) && exists_list(x$parts, HTML_PART)){
-    new_msg <- mime(attr = list(content_type = "multipart/alternative"),
-                   parts = c(x$parts[TEXT_PART], x$parts[HTML_PART]))
-    x$parts[TEXT_PART] <- list(NULL)
-    x$parts[HTML_PART] <- list(NULL)
-    x$parts[[1]] <- new_msg
+    x$attr$content_type <- "multipart/alternative"
   }
 
   # if a multipart message
@@ -166,10 +221,10 @@ as.character.mime <- function(x, newline="\r\n", ...) {
     boundary <- x$attr$boundary <- random_hex(32)
 
     # sep is --boundary newline if multipart, otherwise newline
-    sep <- paste0("--", boundary, newline)
+    sep <- paste0(newline, "--", boundary, newline)
 
     # end is --boundary-- if mulitpart, otherwise nothing
-    end <- paste0("--", boundary, "--", newline)
+    end <- paste0(newline, "--", boundary, "--", newline)
 
     body_text <- paste0(collapse=sep, Filter(function(x) length(x) > 0L, c(lapply(x$parts, as.character), x$body)))
   }
@@ -183,7 +238,7 @@ as.character.mime <- function(x, newline="\r\n", ...) {
 
   x$header$"Content-Type" <- parse_content_type(x$attr)
   x$header$"Content-Transfer-Encoding" <- x$attr$encoding
-  x$header$"Content-Disposition" <- parse_content_disposition(x$attr)
+  x$header$"Content-Disposition" <- generate_content_disposition(x$attr)
 
   encoding <- x$attr$encoding %||% ""
 
@@ -194,7 +249,7 @@ as.character.mime <- function(x, newline="\r\n", ...) {
   )
   headers <- format_headers(x$header, newline = newline)
 
-  paste0(headers, encoded_body, end)
+  paste0(headers, sep, encoded_body, end)
 }
 
 parse_content_type <- function(header) {
@@ -206,10 +261,15 @@ parse_content_type <- function(header) {
          )
 }
 
-parse_content_disposition <- function(header) {
-  paste0(header$disposition %||% "inline",
-         header$filename %|||% paste0("; filename=", header$filename),
-         header$modification_date %|||% paste0("; modification-date=", header$modification_date))
+generate_content_disposition <- function(header) {
+  if (is.null(header$disposition)) {
+    return(NULL)
+  }
+
+  paste0(header$disposition,
+         header$filename %|||% paste0("; filename=", header$filename)
+         #header$modification_date %|||% paste0("; modification-date=", header$modification_date)
+  )
 }
 
 random_hex <- function(width = 4) {
@@ -222,7 +282,7 @@ format_headers <- function(headers, newline) {
   if(length(keep_headers) %==% 0L){
     return(NULL)
   }
-  paste0(paste(sep = ": ", collapse = newline, names(keep_headers), keep_headers), newline, newline)
+  paste0(paste(sep = ": ", collapse = newline, names(keep_headers), keep_headers), newline)
 }
 
 with_defaults <- function(defaults, ...){

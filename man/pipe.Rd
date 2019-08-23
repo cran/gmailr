@@ -10,14 +10,13 @@ lhs \%>\% rhs
 \item{lhs, rhs}{A visualisation and a function to apply to it}
 }
 \description{
-Like dplyr and ggvis gmailr also uses the pipe function, \code{\%>\%} to turn
+Like dplyr and ggvis gmailr also uses the pipe function, \code{\\\%>\\\%} to turn
 function composition into a series of imperative statements.
 }
 \examples{
 # Instead of
-to(mime(), 'someone@somewhere.com')
+gm_to(gm_mime(), 'someone@somewhere.com')
 # you can write
-mime() \%>\% to('someone@somewhere.com')
+gm_mime() \%>\% gm_to('someone@somewhere.com')
 }
 \keyword{internal}
-

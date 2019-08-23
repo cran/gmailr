@@ -43,7 +43,16 @@ not_null <- function(x){ Filter(Negate(is.null), x) }
 
 gmail_path <- function(user, ...) { paste("https://www.googleapis.com/gmail/v1/users", user, paste0(unlist(list(...)), collapse = "/"), sep = "/") }
 gmail_upload_path <- function(user, ...) { paste("https://www.googleapis.com/upload/gmail/v1/users", user, paste0(list(...), collapse = "/"), sep = "/") }
-base64url_decode_to_char <- function(x) { rawToChar(base64decode(gsub("_", "/", gsub("-", "+", x)))) }
+mark_utf8 <- function(x) {
+  if (length(x)) {
+    Encoding(x) <- "UTF-8"
+  }
+
+  x
+}
+base64url_decode_to_char <- function(x) {
+  mark_utf8(rawToChar(base64decode(gsub("_", "/", gsub("-", "+", x)))))
+}
 base64url_decode <- function(x) { base64decode(gsub("_", "/", gsub("-", "+", x))) }
 base64url_encode <- function(x) { gsub("/", "_", gsub("\\+", "-", base64encode(charToRaw(as.character(x))))) }
 
@@ -60,7 +69,7 @@ page_and_trim <- function(type, user_id, num_results, ...){
   num_results <- num_results %||% 100
   itr <- function(...){
     req <- GET(gmail_path(user_id, type),
-             query = not_null(rename(...)), config(token = get_token()))
+             query = not_null(rename(...)), gm_token())
     stop_for_status(req)
     content(req, "parsed")
   }
@@ -104,7 +113,7 @@ chr <- function(x) { rawToChar(as.raw(x)) }
 substitute_regex <- function(data, pattern, fun, ...) {
   match <- gregexpr(pattern, ..., data)
   regmatches(data, match) <- lapply(regmatches(data, match),
-                                   function(x) { if(length(x) > 0) { vapply(x, function(xx) fun(xx), character(1)) } else { x } })
+                                   function(x) { if(length(x) > 0) { vapply(x, function(xx) paste0(fun(xx), collapse=""), character(1)) } else { x } })
   data
 }
 
@@ -124,6 +133,10 @@ substitute_regex <- function(data, pattern, fun, ...) {
 NULL
 
 encode_base64 <- function(x, line_length = 76L, newline = "\r\n") {
+  if (length(x) == 0) {
+    return(x)
+  }
+
   if(is.raw(x)) {
     base64encode(x, 76L, newline)
   } else {
@@ -142,3 +155,11 @@ exists_list <- function(data, x){
 "%!=%" <- function(x, y) { !identical(x, y) }
 
 p <- function(...) paste(sep="", collapse="", ...)
+
+vcapply <- function(...) vapply(..., FUN.VALUE = character(1))
+vlapply <- function(...) vapply(..., FUN.VALUE = logical(1))
+vnapply <- function(...) vapply(..., FUN.VALUE = numeric(1))
+
+iSFALSE <- function(x) {
+  is.logical(x) && length(x) == 1L && !is.na(x) && !x
+}

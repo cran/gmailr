@@ -1,6 +1,6 @@
 #' \pkg{gmailr} makes gmail access easy.
 #'
-#' \code{gmailr} provides an interface to the gmail api \url{https://developers.google.com/gmail/api/}
+#' `gmailr` provides an interface to the gmail api <https://developers.google.com/gmail/api/>
 #' @docType package
 #' @name gmailr
 #' @import httr
@@ -9,7 +9,7 @@ NULL
 
 #' Pipe statements
 #'
-#' Like dplyr and ggvis gmailr also uses the pipe function, \code{\%>\%} to turn
+#' Like dplyr and ggvis gmailr also uses the pipe function, `\%>\%` to turn
 #' function composition into a series of imperative statements.
 #'
 #' @importFrom magrittr %>%
@@ -19,81 +19,10 @@ NULL
 #' @param lhs,rhs A visualisation and a function to apply to it
 #' @examples
 #' # Instead of
-#' to(mime(), 'someone@@somewhere.com')
+#' gm_to(gm_mime(), 'someone@@somewhere.com')
 #' # you can write
-#' mime() %>% to('someone@@somewhere.com')
+#' gm_mime() %>% gm_to('someone@@somewhere.com')
 NULL
-
-the <- new.env(parent = emptyenv())
-the$id <- "955034766742-huv7d1b1euegvk5vfmfq7v83u4rpdqb0.apps.googleusercontent.com"
-the$secret <- "rpJPeEMnDOh7qNAVjUh_aKlO"
-
-get_token <- function() {
-  if(!exists("token", the)){
-    gmail_auth()
-  }
-  the$token
-}
-
-#' Clear the current oauth token
-#' @export
-clear_token <- function() {
-  unlink(".httr-oauth")
-  the$token <- NULL
-}
-
-#' Setup oauth authentication for your gmail
-#'
-#' @param scope the authentication scope to use
-#' @param id the client_id to use for authentication
-#' @param secret the client secret to use for authentication
-#' @param secret_file the secret json file downloaded from \url{https://console.cloud.google.com}
-#' @seealso use_secret_file to set the default id and secret to a different
-#'   value than the default.
-#' @export
-#' @examples
-#' \dontrun{
-#' gmail_auth("compose")
-#' }
-gmail_auth <- function(scope=c("read_only", "modify", "compose", "full"),
-                      id = the$id,
-                      secret = the$secret,
-                      secret_file = NULL) {
-
-  if(!is.null(secret_file)){
-    if (!(missing(id) && missing(secret))) {
-      stop("You should set either ", sQuote("secret_file"), " or ",
-           sQuote("id"), " and ", sQuote("secret"), ", not both",
-           call. = FALSE)
-    }
-    use_secret_file(secret_file)
-
-    # Use new ID and secret
-    id <- the$id
-    secret <- the$secret
-  }
-  myapp <- oauth_app("google", id, secret)
-
-  scope_urls <- c(read_only = "https://www.googleapis.com/auth/gmail.readonly",
-                  modify = "https://www.googleapis.com/auth/gmail.modify",
-                  compose = "https://www.googleapis.com/auth/gmail.compose",
-                  full = "https://mail.google.com/")  
-  scope <- scope_urls[match.arg(scope, several.ok=TRUE)]
-
-  the$token <- oauth2.0_token(oauth_endpoints("google"), myapp, scope = scope)
-}
-
-#' Use information from a secret file
-#'
-#' This function sets the default secret and client_id to those in the secret
-#' file
-#' @param filename the filename of the file
-#' @export
-use_secret_file <- function(filename) {
-  info <- jsonlite::fromJSON(readChar(filename, nchars=1e5))
-  the$secret <- info$installed$client_secret
-  the$id <- info$installed$client_id
-}
 
 #' Get the body text of a message or draft
 #' @param x the object from which to retrieve the body
@@ -101,13 +30,13 @@ use_secret_file <- function(filename) {
 #' @export
 #' @examples
 #' \dontrun{
-#' body(my_message)
-#' body(my_draft)
+#' gm_body(my_message)
+#' gm_body(my_draft)
 #' }
-body <- function(x, ...) UseMethod("body")
+gm_body <- function(x, ...) UseMethod("gm_body")
 
 #' @export
-body.gmail_message <- function(x, type="text/plain", collapse = FALSE, ...){
+gm_body.gmail_message <- function(x, type="text/plain", collapse = FALSE, ...){
   is_multipart <- !is.null(x$payload$parts)
 
   if (is_multipart) {
@@ -143,7 +72,7 @@ body.gmail_message <- function(x, type="text/plain", collapse = FALSE, ...){
 }
 
 #' @export
-body.gmail_draft <- function(x, ...){ body.gmail_message(x$message, ...) }
+gm_body.gmail_draft <- function(x, ...){ gm_body.gmail_message(x$message, ...) }
 
 #' Get the id of a gmailr object
 #' @param x the object from which to retrieve the id
@@ -151,25 +80,25 @@ body.gmail_draft <- function(x, ...){ body.gmail_message(x$message, ...) }
 #' @export
 #' @examples
 #' \dontrun{
-#' id(my_message)
-#' id(my_draft)
+#' gm_id(my_message)
+#' gm_id(my_draft)
 #' }
-id <- function(x, ...) UseMethod("id")
+gm_id <- function(x, ...) UseMethod("gm_id")
 
 #' @export
-id.gmail_message <- function(x, ...) { x$id }
+gm_id.gmail_message <- function(x, ...) { x$id }
 
 #' @export
-id.gmail_thread <- id.gmail_message
+gm_id.gmail_thread <- gm_id.gmail_message
 
 #' @export
-id.gmail_draft <- id.gmail_message
+gm_id.gmail_draft <- gm_id.gmail_message
 
-#' @rdname id
+#' @rdname gm_id
 #' @export
-#' @inheritParams id
+#' @inheritParams gm_id
 #' @param what the type of id to return
-id.gmail_messages <- function(x, what=c("message_id", "thread_id"), ...){
+gm_id.gmail_messages <- function(x, what=c("message_id", "thread_id"), ...){
   what <- switch(match.arg(what),
     message_id = "id",
     thread_id = "threadId"
@@ -178,7 +107,7 @@ id.gmail_messages <- function(x, what=c("message_id", "thread_id"), ...){
 }
 
 #' @export
-id.gmail_drafts <- function(x, what=c("draft_id", "message_id", "thread_id"), ...){
+gm_id.gmail_drafts <- function(x, what=c("draft_id", "message_id", "thread_id"), ...){
   what <- switch(match.arg(what),
     draft_id = return(
                       unlist(lapply(x, function(page) { vapply(page$drafts, "[[", character(1), "id")}))
@@ -190,7 +119,7 @@ id.gmail_drafts <- function(x, what=c("draft_id", "message_id", "thread_id"), ..
 }
 
 #' @export
-id.gmail_threads <- function(x, ...){
+gm_id.gmail_threads <- function(x, ...){
   unlist(lapply(x, function(page) { vapply(page$threads, "[[", character(1), "id") }))
 }
 
@@ -199,131 +128,140 @@ id.gmail_threads <- function(x, ...){
 #' @param ... other parameters passed to methods
 #' @rdname accessors
 #' @export
-to <- function(x, ...) UseMethod("to")
+gm_to <- function(x, ...) UseMethod("gm_to")
 
 #' @export
-to.gmail_message <- function(x, ...){ header_value(x, "To") }
+gm_to.gmail_message <- function(x, ...){ header_value(x, "To") }
 
 #' @export
-to.gmail_draft <- function(x, ...){ to.gmail_message(x$message, ...) }
-
-#' @rdname accessors
-#' @export
-from <- function(x, ...) UseMethod("from")
-
-#' @export
-from.gmail_message <- function(x, ...){ header_value(x, "From") }
-
-#' @export
-from.gmail_draft <- from.gmail_message
-
-#' @export
-from <- function(x, ...) UseMethod("from")
+gm_to.gmail_draft <- function(x, ...){ gm_to.gmail_message(x$message, ...) }
 
 #' @rdname accessors
 #' @export
-cc <- function(x, ...) UseMethod("cc")
+gm_from <- function(x, ...) UseMethod("gm_from")
 
 #' @export
-cc.gmail_message <- function(x, ...){ header_value(x, "Cc") }
+gm_from.gmail_message <- function(x, ...){ header_value(x, "From") }
 
 #' @export
-cc.gmail_draft <- function(x, ...){ from.gmail_message(x$message, ...) }
-
-#' @rdname accessors
-#' @export
-bcc <- function(x, ...) UseMethod("bcc")
+gm_from.gmail_draft <- gm_from.gmail_message
 
 #' @export
-bcc.gmail_message <- function(x, ...){ header_value(x, "Bcc") }
-
-#' @export
-bcc.gmail_draft <- function(x, ...){ from.gmail_message(x$message, ...) }
+gm_from <- function(x, ...) UseMethod("gm_from")
 
 #' @rdname accessors
 #' @export
-date <- function(x, ...) UseMethod("date")
+gm_cc <- function(x, ...) UseMethod("gm_cc")
 
 #' @export
-date.default <- function(x, ...) { base::date() }
+gm_cc.gmail_message <- function(x, ...){ header_value(x, "Cc") }
 
 #' @export
-date.gmail_message <- function(x, ...){ header_value(x, "Date") }
-
-#' @export
-date.gmail_draft <- function(x, ...){ date.gmail_message(x$message, ...) }
+gm_cc.gmail_draft <- function(x, ...){ gm_from.gmail_message(x$message, ...) }
 
 #' @rdname accessors
 #' @export
-subject <- function(x, ...) UseMethod("subject")
+gm_bcc <- function(x, ...) UseMethod("gm_bcc")
 
 #' @export
-subject.gmail_message <- function(x, ...) { header_value(x, "Subject") }
+gm_bcc.gmail_message <- function(x, ...){ header_value(x, "Bcc") }
 
 #' @export
-subject.gmail_draft <- function(x, ...){ subject.gmail_message(x$message, ...) }
+gm_bcc.gmail_draft <- function(x, ...){ gm_from.gmail_message(x$message, ...) }
+
+#' @rdname accessors
+#' @export
+gm_date <- function(x, ...) UseMethod("gm_date")
+
+#' @export
+gm_date.default <- function(x, ...) { base::date() }
+
+#' @export
+gm_date.gmail_message <- function(x, ...){ header_value(x, "Date") }
+
+#' @export
+gm_date.gmail_draft <- function(x, ...){ gm_date.gmail_message(x$message, ...) }
+
+#' @rdname accessors
+#' @export
+gm_subject <- function(x, ...) UseMethod("gm_subject")
+
+#' @export
+gm_subject.gmail_message <- function(x, ...) { header_value(x, "Subject") }
+
+#' @export
+gm_subject.gmail_draft <- function(x, ...){ gm_subject.gmail_message(x$message, ...) }
 
 header_value <- function(x, name){
-  Find(function(header) identical(header$name, name), x$payload$headers)$value
+  mark_utf8(Find(function(header) identical(header$name, name), x$payload$headers)$value)
 }
 
 #' @export
 print.gmail_message <- function(x, ...){
-  to <- to(x)
-  from <- from(x)
-  date <- date(x)
-  subject <- subject(x)
-  id <- id(x)
+  to <- gm_to(x)
+  from <- gm_from(x)
+  date <- gm_date(x)
+  subject <- gm_subject(x)
+  id <- gm_id(x)
+  body <- gm_body(x, collapse = TRUE)
+  attached_files <- unlist(lapply(x$payload$parts, function(part) {
+    if (!is.null(part$filename) && part$filename != "") {
+      part$filename
+    }
+  }))
+
   cat(p(
+    c(
     crayon::bold("Id: "), id, "\n",
-    crayon::bold("To: "), to, "\n",
-    crayon::bold("From: "), from, "\n",
-    crayon::bold("Date: "), date, "\n",
-    crayon::bold("Subject: "), subject, "\n",
-      body(x, collapse = TRUE)), "\n")
+      if (!is.null(to)) { c(crayon::bold("To: "), to, "\n") },
+    if (!is.null(from)) c(crayon::bold("From: "), from, "\n"),
+    if (!is.null(date)) c(crayon::bold("Date: "), date, "\n"),
+    if (!is.null(subject)) c(crayon::bold("Subject: "), subject, "\n"),
+    if (!is.null(body)) c(body),
+    if (!is.null(attached_files)) c(crayon::bold("Attachments: "), paste0("'", attached_files, "'", collapse = ", "), "\n")
+  )))
 }
 
 #' @export
 print.gmail_thread <- function(x, ...){
-  id <- id(x)
+  id <- gm_id(x)
   cat(strwrap(p(crayon::bold("Thread Id: "), id, "\n")), "\n")
 }
 
 #' @export
 print.gmail_draft <- function(x, ...){
-  id <- id(x)
+  id <- gm_id(x)
   cat(strwrap(p(crayon::bold("Draft Id: "), id, "\n")), "\n")
   print(x$message, ...)
 }
 
 #' @export
 print.gmail_messages <- function(x, ...){
-  message_ids <- id(x, "message_id")
-  thread_ids <- id(x, "thread_id")
+  message_ids <- gm_id(x, "message_id")
+  thread_ids <- gm_id(x, "thread_id")
   print(format(data.frame(message_id=message_ids, thread_id=thread_ids)), ...)
 }
 
 #' @export
 print.gmail_threads <- function(x, ...){
-  thread_ids <- id(x)
+  thread_ids <- gm_id(x)
   snippets <- unlist(lapply(x, function(page) { vapply(page$threads, "[[", character(1), "snippet") }))
   print(format(data.frame(thread_id=thread_ids, snippet=snippets)), ...)
 }
 
 #' @export
 print.gmail_drafts <- function(x, ...){
-  draft_ids <- id(x, "draft_id")
-  message_ids <- id(x, "message_id")
-  thread_ids <- id(x, "thread_id")
+  draft_ids <- gm_id(x, "draft_id")
+  message_ids <- gm_id(x, "message_id")
+  thread_ids <- gm_id(x, "thread_id")
   print(format(data.frame(draft_ids, message_id=message_ids, thread_id=thread_ids)), ...)
 }
 
 the$last_response <- list()
 
-gmailr_query <- function(fun, location, user_id, class = NULL, ...) {
-  response <- fun(gmail_path(user_id, location),
-             config(token = get_token()),
-              ...)
+gmailr_query <- function(fun, location, user_id, class = NULL, ..., upload = FALSE) {
+  path_fun <- if (upload) gmail_upload_path else gmail_path
+  response <- fun(path_fun(user_id, location), gm_token(), ...)
   result <- content(response, "parsed")
 
   the$last_response <- response
@@ -334,10 +272,10 @@ gmailr_query <- function(fun, location, user_id, class = NULL, ...) {
         response = response,
         message = paste0("Gmail API error: ", status_code(response), "\n  ", result$error$message, "\n")),
         class = c("condition", "error", "gmailr_error"))
-    stop(cond, call. = FALSE)
+    stop(cond)
   }
 
-  if (!is.null(class)) {
+  if (!is.null(class) && !is.null(result)) {
     class(result) <- class
   }
   result
@@ -346,12 +284,8 @@ gmailr_query <- function(fun, location, user_id, class = NULL, ...) {
 #' Response from the last query
 #'
 #' @export
-last_response <- function() {
+gm_last_response <- function() {
   the$last_response
-}
-
-gmailr_POST <- function(location, user_id, class = NULL, ...) {
-  gmailr_query(POST, location, user_id, class, ...)
 }
 
 gmailr_GET <- function(location, user_id, class = NULL, ...) {
@@ -360,4 +294,16 @@ gmailr_GET <- function(location, user_id, class = NULL, ...) {
 
 gmailr_DELETE <- function(location, user_id, class = NULL, ...) {
   gmailr_query(DELETE, location, user_id, class, ...)
+}
+
+gmailr_PATCH <- function(location, user_id, class = NULL, ...) {
+  gmailr_query(PATCH, location, user_id, class, ...)
+}
+
+gmailr_POST <- function(location, user_id, class = NULL, ...) {
+  gmailr_query(POST, location, user_id, class, ...)
+}
+
+gmailr_PUT <- function(location, user_id, class = NULL, ...) {
+  gmailr_query(PUT, location, user_id, class, ...)
 }
