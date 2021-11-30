@@ -18,11 +18,13 @@ my_labels = gm_labels()
 }
 }
 \references{
-\url{https://developers.google.com/gmail/api/v1/reference/users/labels/list}
+\url{https://developers.google.com/gmail/api/reference/rest/v1/users.labels/list}
 }
 \seealso{
-Other label: \code{\link{gm_create_label}},
-  \code{\link{gm_delete_label}}, \code{\link{gm_label}},
-  \code{\link{gm_update_label}}
+Other label: 
+\code{\link{gm_create_label}()},
+\code{\link{gm_delete_label}()},
+\code{\link{gm_label}()},
+\code{\link{gm_update_label}()}
 }
 \concept{label}

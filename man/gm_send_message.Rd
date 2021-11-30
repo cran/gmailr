@@ -4,8 +4,12 @@
 \alias{gm_send_message}
 \title{Send a message from a mime message}
 \usage{
-gm_send_message(mail, type = c("multipart", "media", "resumable"),
-  thread_id = NULL, user_id = "me")
+gm_send_message(
+  mail,
+  type = c("multipart", "media", "resumable"),
+  thread_id = NULL,
+  user_id = "me"
+)
 }
 \arguments{
 \item{mail}{mime mail message created by mime}
@@ -26,18 +30,20 @@ gm_send_message(gm_mime(from="you@me.com", to="any@one.com",
 }
 }
 \references{
-\url{https://developers.google.com/gmail/api/v1/reference/users/messages/send}
+\url{https://developers.google.com/gmail/api/reference/rest/v1/users.messages/send}
 }
 \seealso{
-Other message: \code{\link{gm_attachment}},
-  \code{\link{gm_delete_message}},
-  \code{\link{gm_import_message}},
-  \code{\link{gm_insert_message}},
-  \code{\link{gm_messages}}, \code{\link{gm_message}},
-  \code{\link{gm_modify_message}},
-  \code{\link{gm_save_attachments}},
-  \code{\link{gm_save_attachment}},
-  \code{\link{gm_trash_message}},
-  \code{\link{gm_untrash_message}}
+Other message: 
+\code{\link{gm_attachment}()},
+\code{\link{gm_delete_message}()},
+\code{\link{gm_import_message}()},
+\code{\link{gm_insert_message}()},
+\code{\link{gm_messages}()},
+\code{\link{gm_message}()},
+\code{\link{gm_modify_message}()},
+\code{\link{gm_save_attachments}()},
+\code{\link{gm_save_attachment}()},
+\code{\link{gm_trash_message}()},
+\code{\link{gm_untrash_message}()}
 }
 \concept{message}

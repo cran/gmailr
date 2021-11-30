@@ -4,8 +4,13 @@
 \alias{gm_history}
 \title{Retrieve change history for the inbox}
 \usage{
-gm_history(start_history_id = NULL, num_results = NULL,
-  label_id = NULL, page_token = NULL, user_id = "me")
+gm_history(
+  start_history_id = NULL,
+  num_results = NULL,
+  label_id = NULL,
+  page_token = NULL,
+  user_id = "me"
+)
 }
 \arguments{
 \item{start_history_id}{the point to start the history.  The historyId can be obtained from a message, thread or previous list response.}
@@ -27,5 +32,5 @@ my_history = history("10")
 }
 }
 \references{
-\url{https://developers.google.com/gmail/api/v1/reference/users/history/list}
+\url{https://developers.google.com/gmail/api/reference/rest/v1/users.history/list}
 }

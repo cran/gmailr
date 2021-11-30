@@ -1,9 +1,8 @@
 # This file is the interface between gmailr and the
 # auth functionality in gargle.
-.auth <- gargle::init_AuthState(
-  package     = "gmailr",
-  auth_active = TRUE
-)
+
+# Initialization happens in .onLoad
+.auth <- NULL
 
 # The roxygen comments for these functions are mostly generated from data
 # in this list and template text maintained in gargle.
@@ -31,7 +30,7 @@ gm_scopes <- function() {
   )
 }
 
-#' Authorize bigrquery
+#' Authorize gmailr
 #'
 #' @eval gargle:::PREFIX_auth_description(gargle_lookup_table)
 #' @eval gargle:::PREFIX_auth_details(gargle_lookup_table)
@@ -235,7 +234,7 @@ gm_oauth_app <- function() {
 #' Reveals information about the profile associated with the current token.
 #'
 #' @seealso Wraps the `getProfile` endpoint:
-#'   * <https://developers.google.com/gmail/api/v1/reference/users/getProfile>
+#'   * <https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile>
 #'
 #' @param verbose Logical, indicating whether to print informative messages
 #'   (default `TRUE`).

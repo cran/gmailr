@@ -20,11 +20,14 @@ untrash_thread(12345)
 }
 }
 \references{
-\url{https://developers.google.com/gmail/api/v1/reference/users/threads/untrash}
+\url{https://developers.google.com/gmail/api/reference/rest/v1/users.threads/untrash}
 }
 \seealso{
-Other thread: \code{\link{gm_delete_thread}},
-  \code{\link{gm_modify_thread}}, \code{\link{gm_threads}},
-  \code{\link{gm_thread}}, \code{\link{gm_trash_thread}}
+Other thread: 
+\code{\link{gm_delete_thread}()},
+\code{\link{gm_modify_thread}()},
+\code{\link{gm_threads}()},
+\code{\link{gm_thread}()},
+\code{\link{gm_trash_thread}()}
 }
 \concept{thread}

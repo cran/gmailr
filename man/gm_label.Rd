@@ -15,11 +15,13 @@ gm_label(id, user_id = "me")
 Get a specific label by id and user_id.
 }
 \references{
-\url{https://developers.google.com/gmail/api/v1/reference/users/labels/get}
+\url{https://developers.google.com/gmail/api/reference/rest/v1/users.labels/get}
 }
 \seealso{
-Other label: \code{\link{gm_create_label}},
-  \code{\link{gm_delete_label}}, \code{\link{gm_labels}},
-  \code{\link{gm_update_label}}
+Other label: 
+\code{\link{gm_create_label}()},
+\code{\link{gm_delete_label}()},
+\code{\link{gm_labels}()},
+\code{\link{gm_update_label}()}
 }
 \concept{label}

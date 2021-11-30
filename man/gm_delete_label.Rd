@@ -15,11 +15,13 @@ gm_delete_label(id, user_id = "me")
 Function to delete a label by id.  This cannot be undone!
 }
 \references{
-\url{https://developers.google.com/gmail/api/v1/reference/users/labels/delete}
+\url{https://developers.google.com/gmail/api/reference/rest/v1/users.labels/delete}
 }
 \seealso{
-Other label: \code{\link{gm_create_label}},
-  \code{\link{gm_labels}}, \code{\link{gm_label}},
-  \code{\link{gm_update_label}}
+Other label: 
+\code{\link{gm_create_label}()},
+\code{\link{gm_labels}()},
+\code{\link{gm_label}()},
+\code{\link{gm_update_label}()}
 }
 \concept{label}
