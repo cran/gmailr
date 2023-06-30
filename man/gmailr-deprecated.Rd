@@ -44,9 +44,7 @@
 \alias{html_body}
 \alias{attach_part}
 \alias{attach_file}
-\title{These functions are deprecated and will be removed in a future release of
-gmailr
-#' \Sexpr[results=rd, stage=render]{lifecycle::badge("deprecated")}}
+\title{Deprecated functions}
 \usage{
 id(x, ...)
 
@@ -133,8 +131,12 @@ attach_part(...)
 attach_file(...)
 }
 \description{
-These functions are deprecated and will be removed in a future release of
-gmailr
-#' \Sexpr[results=rd, stage=render]{lifecycle::badge("deprecated")}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+All of these functions have been renamed, by adding a \code{gm_} prefix. This is
+to eliminate name conflicts with other packages (including the base package).
+Starting with gmailr 1.0.0 (released 2019-08-23), the deprecated functions
+generated a warning. As of gmailr 2.0.0, they generate an error and they will
+be completely removed in a future release.
 }
 \keyword{internal}

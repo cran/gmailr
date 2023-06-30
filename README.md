@@ -1,171 +1,130 @@
-# gmailr #
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# gmailr
+
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/r-lib/gmailr/workflows/R-CMD-check/badge.svg)](https://github.com/r-lib/gmailr/actions)
-[![Codecov test coverage](https://codecov.io/gh/r-lib/gmailr/branch/main/graph/badge.svg)](https://app.codecov.io/gh/r-lib/gmailr?branch=main)
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/gmailr)](https://CRAN.R-project.org/package=gmailr)
+[![R-CMD-check](https://github.com/r-lib/gmailr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/gmailr/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/r-lib/gmailr/branch/main/graph/badge.svg)](https://app.codecov.io/gh/r-lib/gmailr?branch=main)
 <!-- badges: end -->
 
-Exposing the [Gmail API](https://developers.google.com/gmail/api) from R.
+Exposing the [Gmail API](https://developers.google.com/gmail/api) from
+R.
 
-## Installation ##
+## Installation
 
-Get the released version from CRAN:
+Install the released version of gmailr from CRAN:
 
-```R
+``` r
 install.packages("gmailr")
 ```
 
-Or the development version from github with:
+Or install the development version from GitHub with:
 
-```R
-# install.packages("devtools")
-devtools::install_github("r-lib/gmailr")
+``` r
+# install.packages("pak")
+pak::pak("r-lib/gmailr")
 ```
 
-## Writing new emails ##
+## Attach gmailr
 
-Create a new email with `gm_mime()` and the helper functions. When testing it
-is recommended to use `gm_create_draft()` to verify your email is formatted as you
-expect before automating it (if desired) with `gm_send_message()`.
+``` r
+library(gmailr)
+```
 
-```r
+## Setup and auth
+
+In order to use gmailr, you **must** provide your own OAuth client. This
+is documented in the article [Set up an OAuth
+client](https://gmailr.r-lib.org/dev/articles/oauth-client.html). The
+article goes deeply into how to create an OAuth client and also how to
+configure it for gmailr’s use. If you already have an OAuth client or
+know how to create one, the help topics for `?gm_auth_configure` and
+`?gm_default_oauth_client` are more concise resources for just the
+client configuration piece.
+
+Configuring an OAuth client is step 1 of 2 for getting ready to use
+gmailr. Step 2 is to complete the so-called “OAuth dance”, which is
+triggered automatically upon first need. You are taken to a web browser,
+where you must select or login as the Google user you want to use
+(authenticate yourself) and give your OAuth client permission to do
+Gmail stuff on your behalf (authorize). The OAuth dance does not
+(necessarily) need to be repeated in subsequent sessions. See `?gm_auth`
+if these defaults aren’t appropriate for your use case and you’d like to
+take more control.
+
+You can call `gm_profile()` to confirm that you are using the intended
+Google identity.
+
+## Compose and send an email
+
+Create a new email with `gm_mime()` and build it up from parts, using
+helper functions like `gm_to()` and `gm_subject()`.
+
+``` r
 test_email <-
-  gm_mime() %>%
-  gm_to("PUT_A_VALID_EMAIL_ADDRESS_THAT_YOU_CAN_CHECK_HERE") %>%
-  gm_from("PUT_THE_GMAIL_ADDRESS_ASSOCIATED_WITH_YOUR_GOOGLE_ACCOUNT_HERE") %>%
-  gm_subject("this is just a gmailr test") %>%
+  gm_mime() |>
+  gm_to("PUT_A_VALID_EMAIL_ADDRESS_THAT_YOU_CAN_CHECK_HERE") |>
+  gm_from("PUT_THE_GMAIL_ADDRESS_ASSOCIATED_WITH_YOUR_GOOGLE_ACCOUNT_HERE") |>
+  gm_subject("this is just a gmailr test") |>
   gm_text_body("Can you hear me now?")
-
-# Verify it looks correct
-gm_create_draft(test_email)
-
-# If all is good with your draft, then you can send it
-gm_send_message(test_email)
 ```
 
-You can add a file attachment to your message with `gm_attach_file()`.
+When developing the message, you might want to use `gm_create_draft()`,
+if you’d like to view a draft and verify that it’s formatted as you
+expect. Then you can send the draft with `gm_send_draft()` or send the
+original MIME message with `gm_send_message()`.
 
-```r
-write.csv(mtcars,"mtcars.csv")
-test_email <- test_email %>% gm_attach_file("mtcars.csv")
+``` r
+# Verify it looks correct, i.e. look at your Gmail drafts in the browser
+d <- gm_create_draft(test_email)
 
-# Verify it looks correct
-gm_create_draft(test_email)
+# If all is good with your draft, then you can send the existing draft
+gm_send_draft(d)
+#> Draft Id: 189033f7e08ead50 
+#> NULL
 
-# If so, send it
+# or the existing MIME message
 gm_send_message(test_email)
+#> Id: 189033f816495611
 ```
 
-## Reading emails ##
+## Read email
 
-gmail shows you threads of messages in the web UI, you can retrieve all threads
-with `gm_threads()`, and retrieve a specific thread with `gm_thread()`
+You can retrieve all email threads with `gm_threads()` or retrieve a
+specific thread with `gm_thread()`. You can then isolate a specific
+message and access its parts.
 
-```r
-# view the latest thread
+``` r
+# view recent threads
 my_threads <- gm_threads(num_results = 10)
 
 # retrieve the latest thread by retrieving the first ID
-
 latest_thread <- gm_thread(gm_id(my_threads)[[1]])
 
-# The messages in the thread will now be in a list
-latest_thread$messages
-
-# Retrieve parts of a specific message with the accessors
+# messages in the thread will now be in a list
+# retrieve parts of a specific message with the accessors
 my_msg <- latest_thread$messages[[1]]
 
-gm_to(my_msg)
-gm_from(my_msg)
 gm_date(my_msg)
+#> [1] "Wed, 28 Jun 2023 11:24:00 -0700"
 gm_subject(my_msg)
+#> [1] "this is just a gmailr test"
 gm_body(my_msg)
-
-# If a message has attachments, download them all locally with `gm_save_attachments()`.
-gm_save_attachments(my_msg)
+#> [[1]]
+#> [1] "Can you hear me now?\r\n"
 ```
 
-## Features ##
-- retrieve data from your email
-  - drafts: `my_drafts = gm_drafts()`
-  - history: `my_history = history(start_num)`
-  - labels: `my_labels = gm_labels()`
-  - messages: `my_messages = gm_messages("search query")`
-  - threads: `my_threads = gm_threads("search query")`
-- Create and send emails and drafts: see [sending_messages vignette](https://gmailr.r-lib.org/articles/sending_messages.html)
-- manage email labels programmatically: `modify_thread(thread_id, add_labels=c("label_1"), remove_labels=c("label_2"))`
-- put things in the gmail trash
-  - messages: `gm_trash_message(message_id)`
-  - threads: `trash_thread(thread_id)`
-- take things out of the gmail trash
-  - messages: `gm_untrash_message(message_id)`
-  - threads: `untrash_thread(thread_id)`
-- delete directly without using the trash
-  - messages: `gm_delete_message(message_id)`
-  - threads: `delete_thread(thread_id)`
+## Where to learn more
 
-## Setup ##
+More details are available in the [Get
+started](https://gmailr.r-lib.org/articles/gmailr.html) article and in
+gmailr’s [other articles](https://gmailr.r-lib.org/articles/index.html).
 
-In order to use gmailr you will need to create a google project for it. The
-easiest way to do this is via the [Python
-Quickstart](https://developers.google.com/gmail/api/quickstart/python).
-
-* Click the `Enable the Gmail API` button.
-* In the resulting dialog click the `DOWNLOAD CLIENT CONFIGURATION` on your computer.
-* Tell gmailr where the JSON lives, by doing one of the two things
-  1. Call `gm_auth_configure(path = "path/to/downloaded/json")`
-  2. Set the `GMAILR_APP` environment variable to the location of the JSON
-     file, it is convienent to do this in your `.Renviron` file with
-     `usethis::edit_r_environ()`. Then calling `gm_auth_configure()` with no arguments.
-* Call `gm_auth()` to start the OAuth flow to verify to google that you would
-  like your gmailr project to have access to your email. You will get a scary
-  warning about an untrusted application, this is because the application is
-  the one you just created, click advanced and `Go to gmailr` to proceed to do
-  the oauth flow.
-* If you want to authenticate with fewer scopes than the default use the
-  `scopes` parameter to `gm_auth()`. You can see a full list of available
-  scopes from `gm_scopes()`.
-  
-Only very heavy usage of the Gmail API requires payment, so use of the API for most
-people should be free.
-
-## Using gmailr in deployed applications ##
-
-If you are using gmailr in a deployed application you will need to copy two pieces to your deployed location.
-
-1. The application JSON file, that you setup in the local setup.
-2. The oauth token cache, by default this is `~/.R/gargle/gargle-oauth`
-
-The easiest thing to do to ensure you are copying only the gmailr oauth token
-is to set this explicitly locally, e.g. do the following.
-
-### Run locally
-```r
-# Configure your app
-gm_auth_configure(path = "credentials.json")
-
-# Authenticate with the new cache, store tokens in .secret
-gm_auth(cache = ".secret")
-# Go through the oauth flow
-```
-
-Then copy `credentials.json` _and_ the `.secret` directory to your remote location.
-
-### Run remotely
-```
-# Configure your app
-gm_auth_configure(path = "credentials.json")
-
-# Authenticate with the tokens in the copied cache
-gm_auth(email = TRUE, cache = ".secret")
-```
-
-There are additional details on dealing with [non-interactive
-auth](https://gargle.r-lib.org/articles/non-interactive-auth.html#provide-an-oauth-token-directly)
-in the gargle documentation.
-
-## Policies ##
+## Policies
 
 [Privacy policy](https://www.tidyverse.org/google_privacy_policy)
-
-# Community Examples #
-- [Send Email with R](https://github.com/jennybc/send-email-with-r) - Jenny Bryan (@jennybc)
